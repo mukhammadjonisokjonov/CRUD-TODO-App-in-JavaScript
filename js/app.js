@@ -11,6 +11,8 @@ const minuteEl = document.getElementById("minute");
 const secondEl = document.getElementById("second");
 const closeEl = document.getElementById("close");
 
+let editItemId
+
 // check
 let todos = JSON.parse(localStorage.getItem("list")) ?
   JSON.parse(localStorage.getItem("list")) : [];
@@ -66,12 +68,12 @@ function showTodos() {
 
   todos.forEach((item, i) => {
     listGroupTodo.innerHTML += `
-    <li class="list-group-item d-flex justify-content-between">
+    <li ondblclick="setCompleted(${i})" class="list-group-item d-flex justify-content-between ${item.completed == true ? 'completed' : ''}">
     ${item.text}
     <div class="todo-icons">
       <span class="opacity-50 me-2">${item.time}</span>
-      <img src="img/edit.svg" alt="icon" width="25" height="25" />
-      <img src="img/delete.svg" alt="icon" width="25" height="25" />
+      <img onclick=(editTodo(${i})) src="img/edit.svg" alt="icon" width="25" height="25" />
+      <img onclick=(deleteTodo(${i})) src="img/delete.svg" alt="icon" width="25" height="25" />
     </div>
     </li> 
     `;
@@ -98,9 +100,79 @@ formCreate.addEventListener("submit", (e) => {
       time: getTime(),
       completed: false,
     });
-    setTodos();
-    showTodos();
+    setTodos()
+    showTodos()
   } else {
     showMessage("message-create", "Please, enter some text...");
   }
 });
+
+// delete todo 
+function deleteTodo(id) {
+  const deletedTodos = todos.filter((item, i) => {
+    return i !== id
+  })
+
+  todos = deletedTodos
+  setTodos()
+  showTodos()
+}
+
+// setCompleted
+function setCompleted(id) {
+  const completedTodos = todos.map((item, i) => {
+    if (id == i) {
+      return {
+        ...item,
+        completed: item.completed == true ? false : true
+      }
+    } else {
+      return {
+        ...item
+      }
+    }
+  })
+
+  todos = completedTodos
+  setTodos()
+  showTodos()
+}
+
+// editForm
+formEdit.addEventListener('submit', (e) => {
+  e.preventDefault()
+  const todoText = formEdit["input-edit"].value.trim();
+  formEdit.reset();
+
+  if (todoText.length) {
+    todos.splice(editItemId, 1, {
+      text: todoText,
+      time: getTime(),
+      completed: false,
+    });
+    setTodos()
+    showTodos()
+    close()
+  } else {
+    showMessage("message-edit", "Please, enter some text...");
+  }
+})
+
+// editTodo
+function editTodo(id) {
+  open()
+  editItemId = id
+}
+
+overlay.addEventListener('click', close)
+closeEl.addEventListener('click', close)
+
+function open() {
+  modal.classList.remove('hidden')
+  overlay.classList.remove('hidden')
+}
+
+function close() {
+  modal.classList.add('hidden')
+  overlay.classList.add('hidden')
+}
